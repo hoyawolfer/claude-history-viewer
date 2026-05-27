@@ -1,143 +1,250 @@
 # Claude History Viewer
 
-一个只读的本地工具，用来浏览 Claude Code 在 `~/.claude/projects/` 下存的会话历史。
+A native macOS app to browse, search, and export your [Claude Code](https://docs.anthropic.com/en/docs/claude-code) conversation history stored under `~/.claude/projects/`.
 
-## 进度
+**Read-only by design** — it never writes to your `~/.claude/` directory.
 
-- [x] Day 1 — 数据层（扫目录 / 解析 jsonl / 模型）
-- [x] Day 2 — UI 骨架（NavigationSplitView 三栏：项目 / 会话 / 对话）
-- [x] Day 3 — 对话渲染（user / assistant / thinking / tool_use / tool_result）
-- [x] Day 4 — 全局搜索（SQLite FTS5 + BM25 + 时间衰减）
-- [x] 恢复命令：每条搜索结果 / 会话右键菜单可一键复制 `cd <cwd> && claude --resume <id>`
-- [x] 会话元数据持久化（title/cwd/count/start_time）—— DB 优先读取，切项目近瞬开
-- [x] 实时跟随：FSEvents 监听 `~/.claude/projects`，当前会话变化自动追加消息
-- [x] 导出 Markdown：当前会话一键导出为 `.md`
-- [x] 收藏 / 标签：会话级 star + 自定义标签，顶部支持过滤
-- [x] 国际化：UI 跟随系统语言（英 / 中 / 日 / 韩 / 德），未识别语言默认英文
+[English](README.md) · 简体中文 · 日本語 · 한국어 · Deutsch (UI follows your system language)
 
-## 搜索语法（FTS5 原生）
+---
 
-工具栏的搜索框直接接受 FTS5 查询语法：
+## Features
 
-| 查询 | 含义 |
+- 🗂  **Three-pane browser** — projects · sessions · conversation, like a mail client.
+- 🔍 **Full-text search** with SQLite FTS5 + BM25 ranking + 30-day half-life time decay.
+- ⏯  **One-click resume** — every result and session has a copy-paste-able `cd <cwd> && claude --resume <id>`.
+- ⭐ **Favorites & tags** — star sessions, add free-form tags, filter the list.
+- 📤 **Markdown export** — current session → `.md` with collapsible thinking / tool blocks.
+- 🔴 **Live follow** — FSEvents watches `~/.claude/projects/`; new messages appear within ~1 s while another `claude` process is writing.
+- 🌐 **Localized UI** — English, Simplified Chinese, Japanese, Korean, German. Unknown locales fall back to English.
+- 📦 **Zero dependencies** — pure SwiftPM, no CocoaPods/Carthage/Homebrew.
+
+## Screenshots
+
+> _TODO: drop screenshots into `docs/screenshots/` and link them here._
+
+## Requirements
+
+- macOS **14.0** (Sonoma) or later
+- Intel **or** Apple Silicon (the prebuilt binary is a universal binary)
+- Xcode Command Line Tools (only if you build from source)
+
+## Installation
+
+### Option A — Prebuilt binary (recommended)
+
+1. Download the latest `.zip` from the [Releases page](https://github.com/hoyawolfer/claude-history-viewer/releases) (or grab `dist/ClaudeHistoryViewer-*.zip` from this repo if no release is published yet).
+2. Unzip → drag `ClaudeHistoryViewer.app` into `/Applications`.
+3. **First launch only** — the binary is ad-hoc signed (no Apple Developer ID), so Gatekeeper will block a plain double-click. Use one of these:
+
+   - **Right-click the app → Open → click "Open" in the dialog.** (Apple's official escape hatch.)
+   - **Or** run once in Terminal to strip the quarantine flag:
+     ```bash
+     xattr -dr com.apple.quarantine /Applications/ClaudeHistoryViewer.app
+     ```
+
+4. After that, the app launches like any other.
+
+### Option B — Build from source
+
+```bash
+git clone git@github.com:hoyawolfer/claude-history-viewer.git
+cd claude-history-viewer
+swift run
+```
+
+First build compiles in ~10 s; subsequent runs are instant. The app window opens with your projects pre-loaded.
+
+To produce a distributable `.app` bundle (universal binary + ad-hoc sign + zip):
+
+```bash
+./scripts/make-dist.sh
+# → dist/ClaudeHistoryViewer-<version>-universal.zip
+```
+
+For a quick dev `.app` (current architecture, debug build):
+
+```bash
+./scripts/make-app.sh
+open ./ClaudeHistoryViewer.app
+```
+
+## Usage
+
+### Browsing
+
+| Pane (left → right) | What it shows | Selection |
+|---|---|---|
+| **Projects** | One row per directory under `~/.claude/projects/` | Click to load its sessions |
+| **Sessions** | One row per `.jsonl` file in that project | Click to load the conversation |
+| **Conversation** | Flattened messages (user / assistant / thinking / tool_use / tool_result) | Scrolls, blocks are collapsible |
+
+The session list shows the **first meaningful user message** as the title (truncated to 80 chars) — much friendlier than UUIDs.
+
+### Searching
+
+Type into the toolbar search field. Search runs across **all sessions in all projects** with a 300 ms debounce. Clicking a result jumps you to the exact message with a brief yellow highlight.
+
+The search box accepts native [FTS5 syntax](https://www.sqlite.org/fts5.html#full_text_query_syntax):
+
+| Query | Meaning |
 |---|---|
-| `swift build` | 同时包含两个词（隐式 AND） |
-| `"swift build"` | 精确短语 |
-| `swift OR build` | 任一词 |
-| `swift NOT build` | 包含 swift 但不包含 build |
-| `fluidsyn*` | 前缀匹配 |
-| `NEAR(foo bar, 5)` | 5 个词内邻近 |
-| `searching` | Porter 词干，会匹配 `search` / `searched` |
+| `swift build` | Both words (implicit AND) |
+| `"swift build"` | Exact phrase |
+| `swift OR build` | Either word |
+| `swift NOT build` | Has `swift`, not `build` |
+| `fluidsyn*` | Prefix match |
+| `NEAR(foo bar, 5)` | Within 5 tokens of each other |
+| `searching` | Porter stemming — also matches `search`, `searched` |
 
-### 排序公式
+**Ranking formula:**
 
 ```
-最终分 = 0.8 × 归一化 BM25  +  0.2 × 时间衰减
-时间衰减 = 0.5 ^ (距今天数 / 30)   # 30 天半衰期
+score = 0.8 × normalizedBM25  +  0.2 × recency
+recency = 0.5 ^ (ageInDays / 30)        # 30-day half-life
 ```
 
-BM25 在结果集内 min-max 归一化到 [0, 1]。结果列表里每行右下角会显示这三个分数。
+BM25 is min-max normalized within the result set. Each result row shows all three scores (combined / relevance / recency) so you can see *why* it ranked where it did.
 
-### 已知限制
+### Resuming a session
 
-- **中文子串不工作**：`porter unicode61` tokenizer 把连续中文当成一个 token，搜 "这个" 不会匹配 "这个是什么库"。中文里的"词"如果两边有标点或空格（包括 markdown 符号、句号、空格、英文等）就能正常匹配。如果需要中文任意子串，下一轮换 `trigram` tokenizer（会失去英文词干）。
-- **首次启动构建索引**：~9000 条消息 ~10 秒，存在 `~/Library/Caches/ClaudeHistoryViewer/index.db`。后续启动按 mtime+size 增量更新。
+Every search result has a one-line command strip:
 
-## 恢复命令
+```bash
+cd "/path/from/cwd" && claude --resume <session-id>
+```
 
-每条搜索结果下方有一行 `cd "<cwd>" && claude --resume <session-id>`，旁边按钮一键复制到剪贴板，粘到终端可直接续接对话。
-中间栏会话列表也支持右键 → 复制恢复命令 / 复制 session ID。
+Click **Copy**, paste into Terminal — you're back in the same session.
 
-cwd 来自 JSONL 用户消息里的 `cwd` 字段（即会话开始时的真实工作目录），由 IndexBuilder 抽取入 `sessions` 表。
-没拿到 cwd 时退化为只有 `claude --resume <id>`（需手动 cd）。
+The session list also exposes this via right-click → **Copy resume command**.
 
-## 国际化
+The `cwd` is extracted from the original JSONL (the working directory at session start). If it's missing, the strip falls back to `claude --resume <id>` and you cd manually.
 
-UI 跟随系统语言，支持：
-- English (默认 / fallback)
-- 简体中文 `zh-Hans`
-- 日本語 `ja`
-- 한국어 `ko`
-- Deutsch `de`
+### Favorites & tags
 
-未列出的语言（如法语、西班牙语）→ 自动 fallback 到英文。
+- **Star** any session by clicking the ☆ on the left of the row.
+- **Tag** any session by clicking the 🏷 on the right — type comma-separated tags in the popover.
+- The top of the session list has a **★-only** toggle and a **tag-filter** text field (case-insensitive substring match).
+- Favorites and tags survive re-indexing — `IndexBuilder` deliberately doesn't touch the `is_favorite` / `tags` columns on conflict.
 
-资源走 SPM `.process` 机制：`Sources/ClaudeHistoryViewer/Resources/<lang>.lproj/Localizable.strings`，发布脚本会把生成的 resource bundle 拷进 `.app/Contents/Resources/` 并在 Info.plist 声明 `CFBundleLocalizations`。
+### Exporting
 
-**注意**：导出的 Markdown 文件**保持英文**（"You" / "Claude" / "Tool result" 等），不跟随 UI 语言 —— 导出文件常常跨人传，英文最通用。要本地化导出可以单独提需求。
+Toolbar → ↥ button → choose a destination. Defaults to `<yyyyMMdd-HHmm>-<title>.md`. The exporter renders:
 
-测试某个特定语言（不切系统语言）：
+- 👤 `## You` for user messages
+- 🤖 `## Claude` for assistant text
+- 💭 Thinking blocks → `<details>` with `>` blockquotes
+- 🔧 Tool use → fenced ```json``` code block
+- 📤 Tool result → `<details>` + fenced code block
+
+The Markdown export **stays in English** even when the UI is localized — it's optimized for sharing files with people whose locale you don't know.
+
+### Live follow
+
+The app keeps an FSEvents stream on `~/.claude/projects/` with a 1-second debounce. While the app is open:
+
+- Changes to the **currently viewed** session → conversation refreshes in place.
+- New / modified JSONLs in the **current project** → session list refreshes (favorites/tags preserved).
+- Any change → background incremental re-index (only files whose `mtime + size` changed are touched).
+
+Run `claude` in another terminal and new messages appear here automatically.
+
+### Choosing a language
+
+The UI follows the system language (`zh-Hans`, `ja`, `ko`, `de`, anything else falls back to `en`).
+
+To preview a specific language without changing your whole system:
 
 ```bash
 ClaudeHistoryViewer.app/Contents/MacOS/ClaudeHistoryViewer -AppleLanguages "(ja)"
 ```
 
-## 实时跟随、导出、收藏/标签
-
-- **实时跟随**：app 启动后用 FSEvents 递归监听 `~/.claude/projects`，1 秒批延迟聚合事件。
-  - 当前打开的会话文件被写入 → 立即重新解析消息（追加显示）
-  - 当前项目下任意 jsonl 改动 → 刷新会话列表（并保留你设的收藏 / 标签）
-  - 任何文件变化 → 后台增量索引（按 mtime+size 跳过未变文件）
-  - 注意：本 app 自己也在监听 `~/.claude/projects`，所以**它能看见自己所在的会话**——你切到另一个终端跑 `claude` 时，新消息几秒内出现在 viewer 里。
-- **导出 Markdown**：右上角工具栏的 ↥ 按钮，弹 `NSSavePanel`，默认文件名 `yyyyMMdd-HHmm-<title>.md`。thinking 块用 `<details>` 折叠，tool_use 用 ```json 代码块，tool_result 用 `<details>` 包住。
-- **收藏 / 标签**：
-  - 会话列表每行左侧 ★ 切换收藏；右侧 🏷 弹出 popover 编辑标签（逗号分隔）
-  - 顶部过滤栏：★ Only 按钮 + 标签关键字输入（不区分大小写、子串匹配）
-  - 持久化在 sessions 表的 `is_favorite` / `tags` 两列，schema v2 自动迁移
-  - **重要**：IndexBuilder 重新索引时不会覆盖这两列（`ON CONFLICT DO UPDATE` 故意只更新非用户字段）
-
-## 运行
-
-需要 macOS 14+ 和 Xcode 命令行工具（或 Xcode）。
-
-```bash
-cd ~/Documents/ClaudeHistoryViewer
-swift run
-```
-
-第一次会编译几秒，之后窗口直接打开。
-左栏选项目，中栏选会话，右栏看对话。
-
-## 项目结构
+## Architecture
 
 ```
 Sources/ClaudeHistoryViewer/
-├── ClaudeHistoryViewerApp.swift    # @main 入口
+├── ClaudeHistoryViewerApp.swift    # @main entry point
 ├── Models/
-│   ├── Project.swift               # 项目（一个目录）
-│   ├── Session.swift               # 会话（一个 .jsonl 文件）
-│   ├── Message.swift               # 消息（一个内容块）
+│   ├── Project.swift               # one directory under ~/.claude/projects/
+│   ├── Session.swift               # one .jsonl file
+│   ├── Message.swift               # one content block (user/assistant/thinking/tool_*)
 │   └── SearchResult.swift          # SearchHit + IndexState
 ├── Services/
-│   ├── ProjectScanner.swift        # 扫 ~/.claude/projects
-│   ├── SessionParser.swift         # 解析 jsonl
-│   ├── SearchIndex.swift           # SQLite + FTS5 actor（schema v2: 含 is_favorite/tags）
-│   ├── IndexBuilder.swift          # 增量构建 + 排序融合
-│   ├── FileWatcher.swift           # FSEvents 包装（实时跟随）
-│   └── MarkdownExporter.swift      # 会话 → .md 渲染
+│   ├── ProjectScanner.swift        # ls ~/.claude/projects
+│   ├── SessionParser.swift         # JSONL → [Message]
+│   ├── SearchIndex.swift           # SQLite + FTS5 actor (schema v2: favorites/tags)
+│   ├── IndexBuilder.swift          # incremental indexing + BM25/time-decay ranking
+│   ├── FileWatcher.swift           # FSEvents wrapper for live follow
+│   └── MarkdownExporter.swift      # session → .md
+├── Resources/
+│   ├── en.lproj/Localizable.strings
+│   ├── zh-Hans.lproj/Localizable.strings
+│   ├── ja.lproj/Localizable.strings
+│   ├── ko.lproj/Localizable.strings
+│   └── de.lproj/Localizable.strings
 └── Views/
-    ├── AppModel.swift              # @MainActor ObservableObject
-    ├── ContentView.swift           # 三栏布局 + .searchable
+    ├── AppModel.swift              # @MainActor ObservableObject (single source of truth)
+    ├── ContentView.swift           # NavigationSplitView + toolbar + .searchable
     ├── ProjectListView.swift
-    ├── SessionListView.swift
-    ├── ConversationView.swift      # ScrollViewReader + 跳转高亮
-    ├── MessageView.swift
-    └── SearchResultsView.swift     # 搜索结果列表
+    ├── SessionListView.swift       # filter bar + rows + tag editor popover
+    ├── ConversationView.swift      # ScrollViewReader + scroll-to-hit highlight
+    ├── MessageView.swift           # role-specific bubble / collapsible block
+    ├── SearchResultsView.swift     # hits + resume-command strip
+    └── Localized.swift             # T() / L() / Lf() helpers for Bundle.module
 ```
 
-## 几个设计决策
+### Data flow
 
-- **只读**：永远不修改 `~/.claude/projects/` 里的任何文件。
-- **JSONL 一行 → 多条 Message**：assistant 的一条消息里可能同时包含 thinking + 多个 text + 多个 tool_use 块，我们把每个块拍平成独立的 Message，便于折叠和滚动。
-- **会话标题取首条用户消息前 80 字符**：比 uuid 直观，跟 Claude Code `/resume` 的列表风格一致。
-- **tool_use / tool_result / thinking 默认折叠**：工具输出常常几百行，全展开会淹没主线对话。
-- **项目目录名反编码是有损的**：原路径里的 `/` 和 `-` 在编码后无法区分（例如 `EY-EnyaMusic2` 到底是 `EY/EnyaMusic2` 还是 `EY-EnyaMusic2`），目前简单地全部还原成 `/`，仅供显示。
-- **Markdown 走 `AttributedString(markdown:)` 内联模式**：原生、零依赖，支持加粗/斜体/行内代码/链接；代码块和列表会按纯文本展示。等后续真有需要再换 `MarkdownUI`。
+1. `ProjectScanner` walks `~/.claude/projects/`.
+2. `SessionParser` parses each `.jsonl` lazily for display, fully for indexing.
+3. `IndexBuilder` upserts messages into FTS5; sessions metadata goes into a separate table with `mtime + size` as a fingerprint for incremental updates.
+4. `SearchIndex` is an `actor` — all SQLite access serializes through it.
+5. `FileWatcher` notifies `AppModel`, which re-parses the visible session and kicks off a background re-index.
+6. `IndexBuilder.rank()` combines normalized BM25 with an exponential recency score and returns the top 100.
 
-## 下一步
+### Index location
 
-- 中文 trigram 双索引（如果中文搜索体验不够好）
-- 会话级备注（独立长文本，区别于短标签）
-- 把工具结果里的图片/二进制 base64 折叠摘要化
-- 导出多会话为单个 Markdown / Zip
-- 按收藏 / 标签做项目级聚合视图
+`~/Library/Caches/ClaudeHistoryViewer/index.db` — safe to delete; the app will rebuild on next launch. ~9000 messages indexes in ~10 s.
+
+## Design decisions
+
+- **Read-only.** The app never opens any file under `~/.claude/projects/` for write. The index is in `~/Library/Caches/` so it's reproducible.
+- **Flatten on parse.** One JSONL line from Claude may contain thinking + multiple text + multiple tool_use blocks. We flatten into independent `Message`s so each can be collapsed and addressed individually.
+- **Default-collapsed tool I/O.** Tool blocks are often hundreds of lines. Defaulting them collapsed keeps the conversation readable.
+- **Project directory decoding is lossy.** The on-disk encoding replaces `/` with `-`, so `EY-EnyaMusic2` could mean `EY/EnyaMusic2` or literally `EY-EnyaMusic2`. We treat all `-` as `/` for display only.
+- **Inline Markdown only.** Body text goes through `AttributedString(markdown:)` in inline mode — bold/italic/code/link work, code blocks and lists render as plain text. Zero dependencies, ~adequate fidelity.
+- **User data is sticky.** `IndexBuilder` never overwrites `is_favorite` / `tags` on re-index — these are owned by the user, not the indexer.
+
+## Known limitations
+
+- **No CJK substring search.** The `porter unicode61` tokenizer treats consecutive CJK characters as a single token, so searching `这个` won't match `这个是什么库`. CJK "words" surrounded by punctuation/whitespace/markdown work fine. A future option: a parallel `trigram` index for CJK substring (at the cost of losing English stemming).
+- **Ad-hoc signing only.** No Apple Developer ID → Gatekeeper requires right-click-Open or `xattr -d` on first launch.
+- **No app icon yet.** The Dock shows the generic placeholder. If you have a 1024×1024 PNG, drop it into `Resources/` and we can wire up `.icns`.
+
+## Roadmap
+
+- [ ] CJK trigram secondary index for substring search
+- [ ] Per-session notes (long-form, separate from short tags)
+- [ ] Summarize / fold base64 blobs in tool results
+- [ ] Multi-session export (single Markdown or zip)
+- [ ] Project-level aggregations grouped by favorite / tag
+- [ ] App icon
+- [ ] GitHub Release artifacts (currently `dist/*.zip` only)
+
+## Contributing
+
+Contributions welcome — open an issue first to discuss substantial changes.
+
+```bash
+git clone git@github.com:hoyawolfer/claude-history-viewer.git
+cd claude-history-viewer
+swift build           # compile
+swift run             # run (debug)
+swift test            # (no tests yet — PRs welcome)
+```
+
+The codebase is intentionally small. The README's "Architecture" section maps every file to its responsibility — start there.
+
+## License
+
+TBD — to be confirmed by the maintainer. The intent is permissive (MIT or similar); until a `LICENSE` file is added, treat the code as "all rights reserved" and ask before redistributing.
