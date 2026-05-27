@@ -1,0 +1,74 @@
+/* Window / nav titles */
+"nav.projects" = "Projekte";
+"nav.sessions" = "Sitzungen";
+"nav.conversation" = "Unterhaltung";
+"nav.search.title" = "Suche: %@";
+"nav.search.subtitle" = "%d Treffer, sortiert nach Gesamtwertung";
+
+/* Search */
+"search.placeholder" = "Alle Sitzungen durchsuchen (Phrase \"\", AND/OR/NOT, Präfix *)";
+"search.empty.title" = "Keine Treffer";
+"search.empty.message" = "Keine Nachrichten passen zu \"%@\"";
+"search.loading" = "Suche läuft…";
+
+/* Project list empty state */
+"project.empty.title" = "Keine Projekte gefunden";
+"project.empty.message" = "Keine Sitzungsverzeichnisse unter ~/.claude/projects";
+
+/* Session list */
+"session.empty.title" = "Keine Sitzungen";
+"session.empty.message" = "Keine Sitzung entspricht dem aktuellen Filter";
+"session.untitled" = "(leere Sitzung)";
+"session.count.format" = "%d Nachr.";
+"filter.favorites.help" = "Nur Favoriten anzeigen";
+"filter.tag.placeholder" = "Nach Tag filtern…";
+
+/* Conversation */
+"conversation.loading" = "Wird geladen…";
+"conversation.empty.title" = "Sitzung auswählen";
+"conversation.empty.message" = "Wähle links ein Projekt und eine Sitzung, um die Unterhaltung zu sehen.";
+
+/* Toolbar */
+"toolbar.export" = "Markdown exportieren";
+"toolbar.export.help" = "Aktuelle Sitzung als .md exportieren";
+"export.panel.title" = "Sitzung exportieren";
+
+/* Index status */
+"index.building.indeterminate" = "Index wird erstellt…";
+"index.building.progress" = "Index erstellen %d/%d";
+"index.ready" = "Index bereit · %d Nachrichten";
+"index.failed" = "Index fehlgeschlagen: %@";
+
+/* Context menu */
+"context.copy_command" = "Wiederaufnahme-Befehl kopieren";
+"context.copy_session_id" = "Sitzungs-ID kopieren";
+"context.favorite" = "Favorit";
+"context.unfavorite" = "Aus Favoriten entfernen";
+
+/* Tag editor */
+"tag.editor.label" = "Tags (kommagetrennt)";
+"tag.editor.placeholder" = "z. B. swift, frontend, bug";
+"tag.editor.cancel" = "Abbrechen";
+"tag.editor.save" = "Speichern";
+
+/* Roles / kinds */
+"role.you" = "Du";
+"role.claude" = "Claude";
+"role.thinking" = "Denkt";
+"role.tool" = "Tool";
+"role.tool.named" = "Tool · %@";
+"role.tool_result" = "Tool-Ergebnis";
+"role.tool_result.error" = "Tool-Ergebnis (Fehler)";
+"role.result" = "Ergebnis";
+
+/* Metrics */
+"metric.combined" = "Gesamt";
+"metric.relevance" = "Relevanz";
+"metric.recency" = "Aktualität";
+
+/* Resume strip */
+"resume.copied" = "Kopiert";
+"resume.copy" = "Kopieren";
+
+/* Misc */
+"chars.count.format" = "%d Zeichen";

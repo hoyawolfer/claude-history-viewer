@@ -1,0 +1,74 @@
+/* Window / nav titles */
+"nav.projects" = "项目";
+"nav.sessions" = "会话";
+"nav.conversation" = "对话";
+"nav.search.title" = "搜索：%@";
+"nav.search.subtitle" = "%d 条结果，按综合分排序";
+
+/* Search */
+"search.placeholder" = "搜索全部会话（短语用 \"\"、布尔 AND/OR/NOT、前缀 *）";
+"search.empty.title" = "无匹配";
+"search.empty.message" = "没有消息匹配 \"%@\"";
+"search.loading" = "搜索中…";
+
+/* Project list empty state */
+"project.empty.title" = "没有找到项目";
+"project.empty.message" = "~/.claude/projects 下没有任何会话目录";
+
+/* Session list */
+"session.empty.title" = "无会话";
+"session.empty.message" = "没有匹配当前过滤的会话";
+"session.untitled" = "(空会话)";
+"session.count.format" = "%d 条";
+"filter.favorites.help" = "只显示收藏";
+"filter.tag.placeholder" = "按标签过滤…";
+
+/* Conversation */
+"conversation.loading" = "加载中…";
+"conversation.empty.title" = "选择左侧会话";
+"conversation.empty.message" = "从左侧选一个项目和会话来查看对话内容";
+
+/* Toolbar */
+"toolbar.export" = "导出 Markdown";
+"toolbar.export.help" = "把当前会话导出为 .md 文件";
+"export.panel.title" = "导出会话";
+
+/* Index status */
+"index.building.indeterminate" = "建索引中…";
+"index.building.progress" = "建索引 %d/%d";
+"index.ready" = "索引就绪 · %d 条";
+"index.failed" = "索引失败：%@";
+
+/* Context menu */
+"context.copy_command" = "复制恢复命令";
+"context.copy_session_id" = "复制 session ID";
+"context.favorite" = "收藏";
+"context.unfavorite" = "取消收藏";
+
+/* Tag editor */
+"tag.editor.label" = "标签（逗号分隔）";
+"tag.editor.placeholder" = "如：swift, frontend, bug";
+"tag.editor.cancel" = "取消";
+"tag.editor.save" = "保存";
+
+/* Roles / kinds */
+"role.you" = "你";
+"role.claude" = "Claude";
+"role.thinking" = "思考";
+"role.tool" = "工具";
+"role.tool.named" = "工具 · %@";
+"role.tool_result" = "工具结果";
+"role.tool_result.error" = "工具结果（错误）";
+"role.result" = "结果";
+
+/* Metrics */
+"metric.combined" = "综合";
+"metric.relevance" = "相关";
+"metric.recency" = "新鲜";
+
+/* Resume strip */
+"resume.copied" = "已复制";
+"resume.copy" = "复制";
+
+/* Misc */
+"chars.count.format" = "%d 字符";

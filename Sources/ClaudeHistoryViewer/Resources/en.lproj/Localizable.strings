@@ -1,0 +1,74 @@
+/* Window / nav titles */
+"nav.projects" = "Projects";
+"nav.sessions" = "Sessions";
+"nav.conversation" = "Conversation";
+"nav.search.title" = "Search: %@";
+"nav.search.subtitle" = "%d results, sorted by combined score";
+
+/* Search */
+"search.placeholder" = "Search all sessions (phrase \"\", boolean AND/OR/NOT, prefix *)";
+"search.empty.title" = "No matches";
+"search.empty.message" = "No messages match \"%@\"";
+"search.loading" = "Searching…";
+
+/* Project list empty state */
+"project.empty.title" = "No projects found";
+"project.empty.message" = "No session directories under ~/.claude/projects";
+
+/* Session list */
+"session.empty.title" = "No sessions";
+"session.empty.message" = "No sessions match the current filter";
+"session.untitled" = "(empty session)";
+"session.count.format" = "%d msgs";
+"filter.favorites.help" = "Show favorites only";
+"filter.tag.placeholder" = "Filter by tag…";
+
+/* Conversation */
+"conversation.loading" = "Loading…";
+"conversation.empty.title" = "Select a session";
+"conversation.empty.message" = "Pick a project and session on the left to view the conversation.";
+
+/* Toolbar */
+"toolbar.export" = "Export Markdown";
+"toolbar.export.help" = "Export the current session as .md";
+"export.panel.title" = "Export session";
+
+/* Index status */
+"index.building.indeterminate" = "Building index…";
+"index.building.progress" = "Building index %d/%d";
+"index.ready" = "Index ready · %d messages";
+"index.failed" = "Index failed: %@";
+
+/* Context menu */
+"context.copy_command" = "Copy resume command";
+"context.copy_session_id" = "Copy session ID";
+"context.favorite" = "Favorite";
+"context.unfavorite" = "Unfavorite";
+
+/* Tag editor */
+"tag.editor.label" = "Tags (comma-separated)";
+"tag.editor.placeholder" = "e.g. swift, frontend, bug";
+"tag.editor.cancel" = "Cancel";
+"tag.editor.save" = "Save";
+
+/* Roles / kinds */
+"role.you" = "You";
+"role.claude" = "Claude";
+"role.thinking" = "Thinking";
+"role.tool" = "Tool";
+"role.tool.named" = "Tool · %@";
+"role.tool_result" = "Tool result";
+"role.tool_result.error" = "Tool result (error)";
+"role.result" = "Result";
+
+/* Metrics */
+"metric.combined" = "Combined";
+"metric.relevance" = "Relevance";
+"metric.recency" = "Recency";
+
+/* Resume strip */
+"resume.copied" = "Copied";
+"resume.copy" = "Copy";
+
+/* Misc */
+"chars.count.format" = "%d chars";

@@ -1,0 +1,74 @@
+/* Window / nav titles */
+"nav.projects" = "プロジェクト";
+"nav.sessions" = "セッション";
+"nav.conversation" = "会話";
+"nav.search.title" = "検索：%@";
+"nav.search.subtitle" = "%d 件の結果（総合スコア順）";
+
+/* Search */
+"search.placeholder" = "全セッションを検索（フレーズ \"\"、AND/OR/NOT、前方一致 *）";
+"search.empty.title" = "一致なし";
+"search.empty.message" = "\"%@\" に一致するメッセージがありません";
+"search.loading" = "検索中…";
+
+/* Project list empty state */
+"project.empty.title" = "プロジェクトが見つかりません";
+"project.empty.message" = "~/.claude/projects にセッションディレクトリがありません";
+
+/* Session list */
+"session.empty.title" = "セッションなし";
+"session.empty.message" = "現在のフィルタに一致するセッションがありません";
+"session.untitled" = "(空のセッション)";
+"session.count.format" = "%d 件";
+"filter.favorites.help" = "お気に入りのみ表示";
+"filter.tag.placeholder" = "タグでフィルタ…";
+
+/* Conversation */
+"conversation.loading" = "読み込み中…";
+"conversation.empty.title" = "セッションを選択";
+"conversation.empty.message" = "左側でプロジェクトとセッションを選んで会話を表示します";
+
+/* Toolbar */
+"toolbar.export" = "Markdown を書き出す";
+"toolbar.export.help" = "現在のセッションを .md にエクスポート";
+"export.panel.title" = "セッションを書き出す";
+
+/* Index status */
+"index.building.indeterminate" = "インデックス作成中…";
+"index.building.progress" = "インデックス作成 %d/%d";
+"index.ready" = "インデックス完了 · %d 件";
+"index.failed" = "インデックス失敗：%@";
+
+/* Context menu */
+"context.copy_command" = "復元コマンドをコピー";
+"context.copy_session_id" = "セッション ID をコピー";
+"context.favorite" = "お気に入りに追加";
+"context.unfavorite" = "お気に入りから外す";
+
+/* Tag editor */
+"tag.editor.label" = "タグ（カンマ区切り）";
+"tag.editor.placeholder" = "例：swift, frontend, bug";
+"tag.editor.cancel" = "キャンセル";
+"tag.editor.save" = "保存";
+
+/* Roles / kinds */
+"role.you" = "あなた";
+"role.claude" = "Claude";
+"role.thinking" = "思考";
+"role.tool" = "ツール";
+"role.tool.named" = "ツール · %@";
+"role.tool_result" = "ツール結果";
+"role.tool_result.error" = "ツール結果（エラー）";
+"role.result" = "結果";
+
+/* Metrics */
+"metric.combined" = "総合";
+"metric.relevance" = "関連";
+"metric.recency" = "新しさ";
+
+/* Resume strip */
+"resume.copied" = "コピー済み";
+"resume.copy" = "コピー";
+
+/* Misc */
+"chars.count.format" = "%d 文字";

@@ -1,0 +1,28 @@
+# Swift Package Manager
+.build/
+.swiftpm/
+Package.resolved
+
+# Xcode (in case anyone opens it in Xcode later)
+*.xcodeproj/
+*.xcworkspace/
+xcuserdata/
+DerivedData/
+
+# Build / dist outputs
+dist/
+ClaudeHistoryViewer.app/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Editor caches
+.vscode/
+.idea/
+*.swp
+*~
+
+# Logs
+*.log
