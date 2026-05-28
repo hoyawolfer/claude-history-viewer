@@ -42,6 +42,9 @@ if [ ! -d "$RES_BUNDLE_SRC" ]; then
 fi
 cp -R "$RES_BUNDLE_SRC" "$APP/Contents/Resources/"
 
+echo "==> Copying app icon"
+cp "$ROOT/scripts/AppIcon.icns" "$APP/Contents/Resources/AppIcon.icns"
+
 echo "==> Writing Info.plist"
 cat > "$APP/Contents/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
@@ -49,6 +52,7 @@ cat > "$APP/Contents/Info.plist" <<PLIST
 <plist version="1.0">
 <dict>
   <key>CFBundleExecutable</key>           <string>ClaudeHistoryViewer</string>
+  <key>CFBundleIconFile</key>             <string>AppIcon</string>
   <key>CFBundleIdentifier</key>           <string>local.claudehistory.viewer</string>
   <key>CFBundleName</key>                 <string>Claude History Viewer</string>
   <key>CFBundleDisplayName</key>          <string>Claude History Viewer</string>

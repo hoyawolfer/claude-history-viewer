@@ -16,6 +16,7 @@ struct MessageView: View {
                 color: .purple,
                 content: text,
                 monospaced: false,
+                renderMarkdown: true,
                 defaultExpanded: false
             )
         case .toolUse(let name, let input, _):
@@ -53,8 +54,8 @@ private struct BubbleView: View {
             roleText
                 .font(.caption2.bold())
                 .foregroundStyle(color)
-            renderedText
-                .textSelection(.enabled)
+            MarkdownText(text: text)
+                .frame(maxWidth: 720, alignment: .leading)
                 .padding(10)
                 .background(color.opacity(0.08))
                 .overlay(
@@ -64,24 +65,6 @@ private struct BubbleView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 8))
         }
         .frame(maxWidth: .infinity, alignment: alignment == .trailing ? .trailing : .leading)
-    }
-
-    @ViewBuilder
-    private var renderedText: some View {
-        // 内联 markdown 渲染（**粗体**、`代码`、链接等）。不支持代码块/列表，
-        // 但对绝大多数 Claude 输出足够。复杂的我们就当纯文本展示。
-        if let attr = try? AttributedString(
-            markdown: text,
-            options: .init(interpretedSyntax: .inlineOnlyPreservingWhitespace)
-        ) {
-            Text(attr)
-                .font(.body)
-                .frame(maxWidth: 720, alignment: .leading)
-        } else {
-            Text(text)
-                .font(.body)
-                .frame(maxWidth: 720, alignment: .leading)
-        }
     }
 }
 
@@ -93,16 +76,18 @@ private struct CollapsibleBlock: View {
     let color: Color
     let content: String
     let monospaced: Bool
+    let renderMarkdown: Bool
     let defaultExpanded: Bool
 
     @State private var expanded: Bool
 
-    init(titleText: Text, symbol: String, color: Color, content: String, monospaced: Bool, defaultExpanded: Bool) {
+    init(titleText: Text, symbol: String, color: Color, content: String, monospaced: Bool, renderMarkdown: Bool = false, defaultExpanded: Bool) {
         self.titleText = titleText
         self.symbol = symbol
         self.color = color
         self.content = content
         self.monospaced = monospaced
+        self.renderMarkdown = renderMarkdown
         self.defaultExpanded = defaultExpanded
         _expanded = State(initialValue: defaultExpanded)
     }
@@ -135,11 +120,17 @@ private struct CollapsibleBlock: View {
             if expanded {
                 Divider()
                 ScrollView {
-                    Text(content)
-                        .font(monospaced ? .system(.caption, design: .monospaced) : .caption)
-                        .textSelection(.enabled)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(10)
+                    if renderMarkdown {
+                        MarkdownText(text: content)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(10)
+                    } else {
+                        Text(content)
+                            .font(monospaced ? .system(.caption, design: .monospaced) : .caption)
+                            .textSelection(.enabled)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(10)
+                    }
                 }
                 .frame(maxHeight: 320)
                 .background(Color(NSColor.textBackgroundColor))

@@ -22,12 +22,16 @@ if [ -d "$RES_BUNDLE" ]; then
   cp -R "$RES_BUNDLE" "$APP/Contents/Resources/"
 fi
 
+# App 图标
+cp "$ROOT/scripts/AppIcon.icns" "$APP/Contents/Resources/AppIcon.icns"
+
 cat > "$APP/Contents/Info.plist" <<'PLIST'
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
   <key>CFBundleExecutable</key>           <string>ClaudeHistoryViewer</string>
+  <key>CFBundleIconFile</key>             <string>AppIcon</string>
   <key>CFBundleIdentifier</key>           <string>local.claudehistory.viewer</string>
   <key>CFBundleName</key>                 <string>Claude History Viewer</string>
   <key>CFBundleDisplayName</key>          <string>Claude History Viewer</string>
